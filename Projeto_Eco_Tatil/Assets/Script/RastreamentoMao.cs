@@ -1,23 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class RastreamentoMao : MonoBehaviour
 {
     public float velocidadeReduzida = 1.5f;
     private Rigidbody2D rb;
-    public bool encostadoNaParede = false;
-    private Collider2D paredeAtual;
+    private bool encostadoNaParede = false;
+    private Collision2D paredeAtual; // Agora guarda a colisão física
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        //Se o jogador estiver encostado na parede E segurando o Shift Esquerdo
         if (encostadoNaParede && Input.GetKey(KeyCode.LeftShift))
         {
             AtivarRastreamento();
@@ -28,41 +24,44 @@ public class RastreamentoMao : MonoBehaviour
     {
         Vector2 velocidadeReta = rb.velocity;
 
-        if(Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0)
+        if (Mathf.Abs(Input.GetAxisRaw("Vertical")) > 0)
         {
             velocidadeReta.x = 0;
             velocidadeReta.y = Input.GetAxisRaw("Vertical") * velocidadeReduzida;
         }
+        else if (Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0)
+        {
+            velocidadeReta.y = 0; 
+            velocidadeReta.x = Input.GetAxisRaw("Horizontal") * velocidadeReduzida;
+        }
 
         rb.velocity = velocidadeReta;
 
-        Collider2D[] itensProximos = Physics2D.OverlapCircleAll(transform.position, 1.2f);
-        foreach (Collider2D item in itensProximos)
+        if (paredeAtual != null && paredeAtual.gameObject != null)
         {
-            if (item.CompareTag("PontosInteresse"))
+            ElementoTatil elemento = paredeAtual.gameObject.GetComponent<ElementoTatil>();
+            if (elemento != null)
             {
-                ElementoTatil elemento = item.GetComponent<ElementoTatil>();
-                if(elemento != null)
-                {
-                    elemento.RevelarElemento();
-                }
+                elemento.RevelarElemento(); // Acende o bloco de parede
             }
         }
     }
 
-    private void OnTriggerStay2D(Collider2D collision)
+    private void OnCollisionStay2D(Collision2D collision)
     {
-        if (collision.CompareTag("Parede"))
+        if (collision.gameObject.CompareTag("Parede"))
         {
             encostadoNaParede = true;
+            paredeAtual = collision; // Memoriza o bloco de parede tocado
         }
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    private void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.CompareTag("Parede"))
+        if (collision.gameObject.CompareTag("Parede"))
         {
             encostadoNaParede = false;
+            paredeAtual = null; // Limpa a referência
         }
     }
 }
