@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Parede
   - PontosInteresse
+  - FaixaPedestres
   layers:
   - Default
   - TransparentFX
